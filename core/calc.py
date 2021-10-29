@@ -2,27 +2,37 @@ from itertools import product
 import itertools
 
 
-def calc(engraving_value, bonus, stone):
-    temp_engraving = engraving_value
+def calc(input_engraving, bonus, stone):
+    temp_engraving = input_engraving
 
     for key in bonus:
         temp_engraving[key] -= bonus[key]
     for key in stone:
         temp_engraving[key] -= stone[key]
+    #print(temp_engraving)
+    # {'원한': 10, '예리한 둔기': 6, '절정': 3, '돌격 대장': 6}
 
     engraving_name = []
     engraving_num = []
-    for key, val in engraving_value.items():
+    for key, val in temp_engraving.items():
         engraving_name.append(key)
         engraving_num.append(val)
+    #print(engraving_name)
+    #print(engraving_num)
+    # ['원한', '예리한 둔기', '절정', '돌격 대장']
+    # [10, 6, 3, 6]
 
     engraving_combination = combination(engraving_num)
+    #print(engraving_combination)
+    # [[[5, 5], [4, 3, 3]], [[3, 3]], [[3]], [[3, 3]]]
 
     engraving_product = list(product(*engraving_combination))
+    #print(engraving_product)
+    # [([5, 5], [3, 3], [3], [3, 3]), ([4, 3, 3], [3, 3], [3], [3, 3])]
 
     for item in engraving_product[:]:
         item_array = sum(item, [])
-        if len(item_array) != 10:
+        if len(item_array) > 10:
             engraving_product.remove(item)
             continue
         if item_array.count(4) + item_array.count(5) > 5:
@@ -34,7 +44,6 @@ def calc(engraving_value, bonus, stone):
         num1 = []
         num2 = []
         for name, num in zip(engraving_name, engraving_item):
-
             for i in num:
                 temp_engraving = {}
                 if i > 3:
@@ -43,14 +52,25 @@ def calc(engraving_value, bonus, stone):
                 else:
                     temp_engraving[name] = i
                     num2.append(temp_engraving)
+
+        count = len(num1) + len(num2)
+        if count < 10:
+            for i in range(10-count):
+                num2.append({'임시': 0})
         list1.append(num1)
         list2.append(num2)
+    #print(list1)
+    #print(list2)
+    # [[{'원한': 5}, {'원한': 5}], [{'원한': 4}]]
+    # [[{'예리한 둔기': 3}, {'예리한 둔기': 3}, {'절정': 3}, {'돌격 대장': 3}, {'돌격 대장': 3}, {'임시': 0}, {'임시': 0}, {'임시': 0}], [{'원한': 3}, {'원한': 3}, {'예리한 둔기': 3}, {'예리한 둔기': 3}, {'절정': 3}, {'돌격 대장': 3}, {'돌격 대장': 3}, {'임시': 0}, {'임시': 0}]]
 
     list_up = []
     list_down = []
     for i in range(len(list1)):
         if len(list1[i]) < 5:
             select_engraving = list(itertools.combinations(list2[i], 5-len(list1[i])))
+            #print(select_engraving)
+            #print(len(select_engraving))
             for move_engraving_tuple in select_engraving:
                 move_engraving_list = list(move_engraving_tuple)
                 list_up.append(list1[i]+move_engraving_list)
@@ -91,6 +111,8 @@ def calc(engraving_value, bonus, stone):
         print(i)
     print(len(accessories_combination))
 
+    return accessories_combination
+
 
 
 
@@ -122,7 +144,7 @@ if __name__ == "__main__":
     bonus = {'슈퍼 차지': 12, '잔재된 기운': 12}
     stone = {'원한': 7, '기습의 대가': 8}
 
-    engraving_value = {'원한': 15, '예리한 둔기': 15, '절정': 15, '돌격 대장': 15, '저주받은 인형': 15}
+    engraving_value = {'원한': 15, '예리한 둔기': 15, '절정': 15, '돌격 대장': 15, '질량 증가': 15}
     bonus = {'돌격 대장': 9, '절정': 12}
     stone = {'원한': 5, '예리한 둔기': 9}
 
