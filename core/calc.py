@@ -105,13 +105,17 @@ def calc(input_engraving, bonus, stone):
             accessories_combination.append(accessorie)
 
     accessories_combination.sort()
-    accessories_combination = set(list(map(tuple, accessories_combination)))
 
-    for i in accessories_combination:
-        print(i)
-    print(len(accessories_combination))
+    accessories_combination = list(set(map(tuple, accessories_combination)))
 
-    return accessories_combination
+    #for i in accessories_combination:
+    #    print(i)
+    #print(len(accessories_combination))
+
+    arr = list(set(itertools.chain.from_iterable(accessories_combination)))
+    #print(arr)
+
+    return accessories_combination, arr
 
 
 
@@ -139,13 +143,15 @@ def combination(engraving_num):
     return combination_list
 
 
+'''
 if __name__ == "__main__":
-    engraving_value = {'원한': 15, '슈퍼 차지': 15, '잔재된 기운': 15, '기습의 대가': 15, '저주받은 인형': 15}
-    bonus = {'슈퍼 차지': 12, '잔재된 기운': 12}
+    engraving_value = {'원한': 15, '아드레날린': 15, '버스트': 15, '기습의 대가': 15, '저주받은 인형': 15}
+    bonus = {'저주받은 인형': 12, '아드레날린': 9}
     stone = {'원한': 7, '기습의 대가': 8}
 
-    engraving_value = {'원한': 15, '예리한 둔기': 15, '절정': 15, '돌격 대장': 15, '질량 증가': 15}
-    bonus = {'돌격 대장': 9, '절정': 12}
-    stone = {'원한': 5, '예리한 둔기': 9}
+    #engraving_value = {'원한': 15, '예리한 둔기': 15, '절정': 15, '돌격 대장': 15, '질량 증가': 15}
+    #bonus = {'돌격 대장': 9, '절정': 12}
+    #stone = {'원한': 5, '예리한 둔기': 9}
 
     calc(engraving_value, bonus, stone)
+'''
