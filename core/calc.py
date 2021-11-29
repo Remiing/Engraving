@@ -1,5 +1,7 @@
 from itertools import product
 import itertools
+import pickle
+import tqdm
 
 
 def calc(input_engraving, bonus, stone):
@@ -118,9 +120,6 @@ def calc(input_engraving, bonus, stone):
     return accessories_combination, arr
 
 
-
-
-
 def combination(engraving_num):
     combination_dict = {15: [[5, 5, 5], [5, 4, 3, 3], [4, 4, 4, 3], [3, 3, 3, 3, 3]],
                         14: [[5, 3, 3, 3], [4, 4, 3, 3], [5, 5, 4]],
@@ -143,15 +142,38 @@ def combination(engraving_num):
     return combination_list
 
 
-'''
-if __name__ == "__main__":
-    engraving_value = {'원한': 15, '아드레날린': 15, '버스트': 15, '기습의 대가': 15, '저주받은 인형': 15}
-    bonus = {'저주받은 인형': 12, '아드레날린': 9}
-    stone = {'원한': 7, '기습의 대가': 8}
+def calc_ac(ac_com, item_list, nature_list):
+    ac_list = []
 
-    #engraving_value = {'원한': 15, '예리한 둔기': 15, '절정': 15, '돌격 대장': 15, '질량 증가': 15}
-    #bonus = {'돌격 대장': 9, '절정': 12}
-    #stone = {'원한': 5, '예리한 둔기': 9}
+    i = 0
+    for com in ac_com:
+        part_com = itertools.permutations(com)
+        for parts in tqdm.tqdm(part_com):
+            part_list = []
+            for engraving_option, nature in zip(parts, nature_list):
+                part = nature[0]
+                nature_option = nature[1]
+                engraving_option1 = engraving_option[0]
+                engraving_option2 = engraving_option[1]
+                nature_name = nature_option[0] + nature_option[1]
+                engraving_name = engraving_option1[0] + '_' + str(engraving_option1[1]) + '&' + engraving_option2[0] + '_' + str(engraving_option2[1])
+                part_list.append(item_list[part][nature_name][engraving_name])
+                #print(part, nature_name, engraving_name)
+                #print(item_list[part][nature_name][engraving_name])
+                i += 1
+            ac_list.extend(list(product(*part_list)))
 
-    calc(engraving_value, bonus, stone)
-'''
+
+    print(i)
+    print('--------------------------------------------------')
+    print(len(ac_list))
+    print(ac_list[:30])
+
+
+    #with open("ac_list.pkl", "wb") as fw:
+    #    pickle.dump(ac_list, fw)
+
+
+def clear():
+    with open("ac_list.pkl", "rb") as fr:
+        ac_list = pickle.load(fr)

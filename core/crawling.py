@@ -1,5 +1,7 @@
+import time
 import requests
 import pickle
+import tqdm
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait, Select
@@ -33,7 +35,8 @@ def access():
         WebDriverWait(driver, 300).until(expected_conditions.element_to_be_clickable((By.ID, 'btnSearch')))
         html_source = driver.page_source
         #print(html_source)
-        pickle.dump(driver.get_cookies(), open("cookies.pkl", "wb"))
+        with open("cookies.pkl", "wb") as fw:
+            pickle.dump(driver.get_cookies(), fw)
         #return driver
     except:
         print('fail')
@@ -41,7 +44,8 @@ def access():
 
 def make_session():
     session = requests.Session()
-    cookies = pickle.load(open("cookies.pkl", "rb"))
+    with open("cookies.pkl", "rb") as fr:
+        cookies = pickle.load(fr)
     #print(cookies)
     for cookie in cookies:
         c = {cookie['name']: cookie['value']}
@@ -158,8 +162,11 @@ def crawling(session, ac, nature):
     }
 
     item_list = nested_dict(3, dict)
-    for engraving_option1, engraving_option2 in ac:
+    check = ''
+    for engraving_option1, engraving_option2 in tqdm.tqdm(ac, position=0, leave=False):
         for part, nature_option in nature:
+            if part+nature_option[0] == check:
+                continue
             temp_list = []
             page = 1
             while True:
@@ -191,18 +198,22 @@ def crawling(session, ac, nature):
                     'request[sortOption][Sort]': 'BIDSTART_PRICE',
                     'request[sortOption][IsDesc]': 'false'
                 }
-                print(page, part, engraving_option1, engraving_option2, nature_option)
+                time.sleep(3)
                 response = session.post(url, data=data)
                 soup = BeautifulSoup(response.text, "html.parser")
                 if not soup.select('.empty'):
-                    temp_list.append(parsing(soup))
+                    #print(page, part, engraving_option1, engraving_option2, nature_option)
+                    temp_list.extend(parsing(soup))
                     page += 1
                 else:
                     nature_name = nature_option[0] + nature_option[1]
                     engraving_name = engraving_option1[0] + '_' + str(engraving_option1[1]) + '&' + engraving_option2[0] + '_' + str(engraving_option2[1])
-                    item_list[part][nature_name][engraving_name]=temp_list
+                    item_list[part][nature_name][engraving_name] = temp_list
+                    #print(part, nature_name, engraving_name, len(temp_list))
+                    check = part+nature_option[0]
                     break
 
+    return item_list
 
 
 def parsing(soup):
@@ -211,11 +222,14 @@ def parsing(soup):
         if not item: break
         name = item.select_one('#auctionListTbody > tr > td > div.grade > span.name').text
         effect = []
-        for ef in item.select('#auctionListTbody > tr > td > div.effect > ul:nth-child(1) > li'):
-            option_text = ef.text
+        for i in item.select('#auctionListTbody > tr > td > div.effect > ul:nth-child(1) > li'):
+            option_text = i.text
             effect.append((option_text[option_text.index('[') + 1:option_text.index(']')], int(option_text[option_text.index('+') + 1])))
-        nature_temp = item.select_one('#auctionListTbody > tr > td > div.effect > ul:nth-child(2) > li').text
-        nature = (nature_temp[nature_temp.index('[') + 1:nature_temp.index(']')], int(nature_temp[nature_temp.index('+') + 1:]))
+        nature = []
+        nature_temp = item.select('#auctionListTbody > tr > td > div.effect > ul:nth-child(2) > li')
+        for i in nature_temp:
+            nature_text = i.text
+            nature.append((nature_text[nature_text.index('[') + 1:nature_text.index(']')], int(nature_text[nature_text.index('+') + 1:])))
         quality = item.select_one('#auctionListTbody > tr > td:nth-child(3) > div > span.txt').text
         start_price = item.select_one('#auctionListTbody > tr > td:nth-child(5) > div > em').text
         buy_price = item.select_one('#auctionListTbody > tr > td:nth-child(6) > div > em').text.replace(' ', '').replace('\n', '').replace('\r', '')
@@ -223,23 +237,4 @@ def parsing(soup):
         item_list.append(item_info)
 
     return item_list
-
-
-
-
-if __name__ == "__main__":
-    #driver = access()
-    session = make_session()
-    crawling(session)
-
-
-
-
-
-
-
-
-
-
-
 
