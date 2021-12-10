@@ -9,8 +9,8 @@ def calc(input_engraving, bonus, stone):
 
     for key in bonus:
         temp_engraving[key] -= bonus[key]
-    for key in stone:
-        temp_engraving[key] -= stone[key]
+    for key in stone[0]:
+        temp_engraving[key] -= stone[0][key]
     #print(temp_engraving)
     # {'원한': 10, '예리한 둔기': 6, '절정': 3, '돌격 대장': 6}
 
@@ -142,13 +142,13 @@ def combination(engraving_num):
     return combination_list
 
 
-def calc_ac(ac_com, item_list, nature_list):
+def calc_ac(ac_com, item_list, nature_list, stone):
     ac_list = []
 
-    i = 0
-    for com in ac_com:
+    for com in tqdm.tqdm(ac_com):
         part_com = itertools.permutations(com)
-        for parts in tqdm.tqdm(part_com):
+        for parts in part_com:
+            #print(parts)
             part_list = []
             for engraving_option, nature in zip(parts, nature_list):
                 part = nature[0]
@@ -160,20 +160,25 @@ def calc_ac(ac_com, item_list, nature_list):
                 part_list.append(item_list[part][nature_name][engraving_name])
                 #print(part, nature_name, engraving_name)
                 #print(item_list[part][nature_name][engraving_name])
-                i += 1
-            ac_list.extend(list(product(*part_list)))
+
+            temp_list = list(product(*part_list))
+            for ac in temp_list:
+                if ac[1]['name'] == ac[2]['name'] or ac[3]['name'] == ac[4]['name']:
+                    continue
+                effect = {'공격력 감소': 0, '공격속도 감소': 0, '방어력 감소': 0, '이동속도 감소': 0}
+                effect[stone[1][0]] = stone[1][1]
+                for i in ac:
+                    effect[i['effect'][2][0]] = effect[i['effect'][2][0]] + i['effect'][2][1]
+                for i in effect.values():
+                    if i >= 5:
+                        break
+                else:
+                    ac_list.extend(ac)
+                    #print(ac)
+                    continue
+
+    with open("ac_list.pkl", "wb") as fw:
+        pickle.dump(ac_list, fw)
 
 
-    print(i)
-    print('--------------------------------------------------')
-    print(len(ac_list))
-    print(ac_list[:30])
 
-
-    #with open("ac_list.pkl", "wb") as fw:
-    #    pickle.dump(ac_list, fw)
-
-
-def clear():
-    with open("ac_list.pkl", "rb") as fr:
-        ac_list = pickle.load(fr)

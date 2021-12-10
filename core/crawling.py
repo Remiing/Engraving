@@ -203,6 +203,7 @@ def crawling(session, ac, nature):
                 soup = BeautifulSoup(response.text, "html.parser")
                 if not soup.select('.empty'):
                     #print(page, part, engraving_option1, engraving_option2, nature_option)
+
                     temp_list.extend(parsing(soup))
                     page += 1
                 else:
@@ -230,7 +231,8 @@ def parsing(soup):
         for i in nature_temp:
             nature_text = i.text
             nature.append((nature_text[nature_text.index('[') + 1:nature_text.index(']')], int(nature_text[nature_text.index('+') + 1:])))
-        quality = item.select_one('#auctionListTbody > tr > td:nth-child(3) > div > span.txt').text
+        quality = int(item.select_one('#auctionListTbody > tr > td:nth-child(3) > div > span.txt').text)
+        if quality < 50: continue
         start_price = item.select_one('#auctionListTbody > tr > td:nth-child(5) > div > em').text
         buy_price = item.select_one('#auctionListTbody > tr > td:nth-child(6) > div > em').text.replace(' ', '').replace('\n', '').replace('\r', '')
         item_info = {'name': name, 'effect': effect, 'nature': nature, 'quality': quality, 'start_price': start_price, 'buy_price': buy_price}
