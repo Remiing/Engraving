@@ -29,7 +29,7 @@ def access():
     driver.get(url)
     driver.find_element_by_name('user_id').send_keys('killdog070@naver.com')
     driver.find_element_by_name('user_pwd').send_keys('songjm8138')
-    login_x_path = '//*[@id="idLogin"]/div[3]/button'
+    login_x_path = '//*[@id="idLogin"]/div[4]/button/span'
     driver.find_element_by_xpath(login_x_path).click()
     try:
         WebDriverWait(driver, 300).until(expected_conditions.element_to_be_clickable((By.ID, 'btnSearch')))
@@ -164,7 +164,12 @@ def crawling(session, ac, nature):
     item_list = nested_dict(3, dict)
     check = ''
     for engraving_option1, engraving_option2 in tqdm.tqdm(ac, position=0, leave=False):
+        if engraving_option1[0] == '임시' or engraving_option2[0] == '임시':
+            continue
         for part, nature_option in nature:
+            if part=='귀걸이' and engraving_option1[0] == '버스트' and engraving_option2[0] == '원한':
+                item_list[part]['특화']['버스트_3&원한_5'] = [{'name': '찬란한 파멸자의 귀걸이', 'effect': [('버스트', 3), ('원한', 5), ('공격력 감소', 2)], 'nature': [('특화', 278)], 'quality': 63, 'buy_price': 0}]
+                continue
             if part+nature_option[0] == check:
                 continue
             temp_list = []
@@ -210,7 +215,8 @@ def crawling(session, ac, nature):
                     nature_name = nature_option[0] + nature_option[1]
                     engraving_name = engraving_option1[0] + '_' + str(engraving_option1[1]) + '&' + engraving_option2[0] + '_' + str(engraving_option2[1])
                     item_list[part][nature_name][engraving_name] = temp_list
-                    #print(part, nature_name, engraving_name, len(temp_list))
+                    print(part, nature_name, engraving_name, len(temp_list))
+                    print(temp_list)
                     check = part+nature_option[0]
                     break
 
@@ -233,9 +239,13 @@ def parsing(soup):
             nature.append((nature_text[nature_text.index('[') + 1:nature_text.index(']')], int(nature_text[nature_text.index('+') + 1:])))
         quality = int(item.select_one('#auctionListTbody > tr > td:nth-child(3) > div > span.txt').text)
         if quality < 50: continue
-        start_price = item.select_one('#auctionListTbody > tr > td:nth-child(5) > div > em').text
-        buy_price = item.select_one('#auctionListTbody > tr > td:nth-child(6) > div > em').text.replace(' ', '').replace('\n', '').replace('\r', '')
-        item_info = {'name': name, 'effect': effect, 'nature': nature, 'quality': quality, 'start_price': start_price, 'buy_price': buy_price}
+        #start_price = item.select_one('#auctionListTbody > tr > td:nth-child(5) > div > em').text
+        buy_price = item.select_one('#auctionListTbody > tr > td:nth-child(6) > div > em').text.replace(' ', '').replace('\n', '').replace('\r', '').replace(',', '')
+        if not buy_price.isdecimal():
+            continue
+        else:
+            buy_price = int(buy_price)
+        item_info = {'name': name, 'effect': effect, 'nature': nature, 'quality': quality, 'buy_price': buy_price}
         item_list.append(item_info)
 
     return item_list

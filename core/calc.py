@@ -106,14 +106,13 @@ def calc(input_engraving, bonus, stone):
             accessorie.sort()
             accessories_combination.append(accessorie)
 
+
+    x = [i for i in accessories_combination if (('버스트', 3), ('원한', 5)) in i]
+
+    accessories_combination = x
+
     accessories_combination.sort()
-
     accessories_combination = list(set(map(tuple, accessories_combination)))
-
-    #for i in accessories_combination:
-    #    print(i)
-    #print(len(accessories_combination))
-
     arr = list(set(itertools.chain.from_iterable(accessories_combination)))
     #print(arr)
 
@@ -144,11 +143,14 @@ def combination(engraving_num):
 
 def calc_ac(ac_com, item_list, nature_list, stone):
     ac_list = []
-
     for com in tqdm.tqdm(ac_com):
+        if not (('버스트', 3), ('원한', 5)) in com:
+            continue
         part_com = itertools.permutations(com)
         for parts in part_com:
-            #print(parts)
+            if not parts[1]==(('버스트', 3), ('원한', 5)) or parts[2]==(('버스트', 3), ('원한', 5)):
+                continue
+            # print(parts)
             part_list = []
             for engraving_option, nature in zip(parts, nature_list):
                 part = nature[0]
@@ -158,27 +160,44 @@ def calc_ac(ac_com, item_list, nature_list, stone):
                 nature_name = nature_option[0] + nature_option[1]
                 engraving_name = engraving_option1[0] + '_' + str(engraving_option1[1]) + '&' + engraving_option2[0] + '_' + str(engraving_option2[1])
                 part_list.append(item_list[part][nature_name][engraving_name])
-                #print(part, nature_name, engraving_name)
-                #print(item_list[part][nature_name][engraving_name])
+                # print(part, nature_name, engraving_name)
+                # print(item_list[part][nature_name][engraving_name])
 
             temp_list = list(product(*part_list))
             for ac in temp_list:
                 if ac[1]['name'] == ac[2]['name'] or ac[3]['name'] == ac[4]['name']:
                     continue
-                effect = {'공격력 감소': 0, '공격속도 감소': 0, '방어력 감소': 0, '이동속도 감소': 0}
-                effect[stone[1][0]] = stone[1][1]
+                effect = {'공격력 감소': 0, '공격속도 감소': 0, '방어력 감소': 0, '이동속도 감소': 0, stone[1][0]: stone[1][1]}
                 for i in ac:
                     effect[i['effect'][2][0]] = effect[i['effect'][2][0]] + i['effect'][2][1]
                 for i in effect.values():
                     if i >= 5:
                         break
                 else:
-                    ac_list.extend(ac)
+                    total = 0
+                    nature_total = {ac[0]['nature'][0][0]: 0, ac[0]['nature'][1][0]: 0}
+                    for i in ac:
+                        total += int(i['buy_price'])
+                        for j in i['nature']:
+                            nature_total[j[0]] += j[1]
+                    ac_list.append((total, nature_total, ac))
                     #print(ac)
-                    continue
 
     with open("ac_list.pkl", "wb") as fw:
         pickle.dump(ac_list, fw)
 
 
+def minn():
+    with open("ac_list.pkl", "rb") as fr:
+        ac_list = pickle.load(fr)
+    temp_list = [i for i in ac_list if i[1]['특화']>=1465]
 
+    temp_list.sort(key=lambda x:x[0])
+    j=0
+    for i in temp_list:
+        k=[x['quality'] for x in i[2]]
+        if k[0] <= 89: continue
+        print(k, i)
+        if j > 100: break
+        j+=1
+    print(len(temp_list))
