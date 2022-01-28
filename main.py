@@ -210,9 +210,11 @@ class Ui_MainWindow(object):
         self.gridLayout_010.addWidget(self.label_01000, 0, 0, 1, 1)
         self.comboBox_01001 = QtWidgets.QComboBox(self.groupBox_010)
         self.comboBox_01001.setObjectName("comboBox_01001")
+        self.comboBox_01001.addItems(data.nature_dict.keys())
         self.gridLayout_010.addWidget(self.comboBox_01001, 0, 1, 1, 1)
         self.comboBox_01002 = QtWidgets.QComboBox(self.groupBox_010)
         self.comboBox_01002.setObjectName("comboBox_01002")
+        self.comboBox_01002.addItems(data.nature_dict.keys())
         self.gridLayout_010.addWidget(self.comboBox_01002, 0, 2, 1, 1)
         
         self.label_01010 = QtWidgets.QLabel(self.groupBox_010)
@@ -220,6 +222,7 @@ class Ui_MainWindow(object):
         self.gridLayout_010.addWidget(self.label_01010, 1, 0, 1, 1)
         self.comboBox_01011 = QtWidgets.QComboBox(self.groupBox_010)
         self.comboBox_01011.setObjectName("comboBox_01011")
+        self.comboBox_01011.addItems(data.nature_dict.keys())
         self.gridLayout_010.addWidget(self.comboBox_01011, 1, 1, 1, 1)
         
         self.label_01020 = QtWidgets.QLabel(self.groupBox_010)
@@ -227,6 +230,7 @@ class Ui_MainWindow(object):
         self.gridLayout_010.addWidget(self.label_01020, 2, 0, 1, 1)
         self.comboBox_01021 = QtWidgets.QComboBox(self.groupBox_010)
         self.comboBox_01021.setObjectName("comboBox_01021")
+        self.comboBox_01021.addItems(data.nature_dict.keys())
         self.gridLayout_010.addWidget(self.comboBox_01021, 2, 1, 1, 1)
         
         self.label_01030 = QtWidgets.QLabel(self.groupBox_010)
@@ -234,6 +238,7 @@ class Ui_MainWindow(object):
         self.gridLayout_010.addWidget(self.label_01030, 3, 0, 1, 1)
         self.comboBox_01031 = QtWidgets.QComboBox(self.groupBox_010)
         self.comboBox_01031.setObjectName("comboBox_01031")
+        self.comboBox_01031.addItems(data.nature_dict.keys())
         self.gridLayout_010.addWidget(self.comboBox_01031, 3, 1, 1, 1)
         
         self.label_01040 = QtWidgets.QLabel(self.groupBox_010)
@@ -241,6 +246,7 @@ class Ui_MainWindow(object):
         self.gridLayout_010.addWidget(self.label_01040, 4, 0, 1, 1)
         self.comboBox_01041 = QtWidgets.QComboBox(self.groupBox_010)
         self.comboBox_01041.setObjectName("comboBox_01041")
+        self.comboBox_01041.addItems(data.nature_dict.keys())
         self.gridLayout_010.addWidget(self.comboBox_01041, 4, 1, 1, 1)
 
         self.verticalLayout_010.addLayout(self.gridLayout_010)
@@ -366,6 +372,15 @@ class Ui_MainWindow(object):
         
         self.verticalLayout_021.addLayout(self.gridLayout_021)
         self.verticalLayout_02.addWidget(self.groupBox_021)
+
+        # progress bar
+        self.progressBar1 = QtWidgets.QProgressBar(self.tab_0)
+        self.progressBar1.setObjectName("progressBar1")
+        self.verticalLayout_02.addWidget(self.progressBar1)
+        self.progressBar2 = QtWidgets.QProgressBar(self.tab_0)
+        self.progressBar2.setObjectName("progressBar2")
+        self.verticalLayout_02.addWidget(self.progressBar2)
+
 
         # calc button
         self.pushButton_calc = QtWidgets.QPushButton(self.tab_0)
@@ -503,11 +518,11 @@ class Ui_MainWindow(object):
         self.groupBox_001.setTitle(_translate("MainWindow", "장착 각인"))
         self.groupBox_002.setTitle(_translate("MainWindow", "어빌리티 스톤"))
         self.groupBox_010.setTitle(_translate("MainWindow", "특성"))
-        self.label_01040.setText(_translate("MainWindow", "TextLabel"))
-        self.label_01000.setText(_translate("MainWindow", "TextLabel"))
-        self.label_01010.setText(_translate("MainWindow", "TextLabel"))
-        self.label_01020.setText(_translate("MainWindow", "TextLabel"))
-        self.label_01030.setText(_translate("MainWindow", "TextLabel"))
+        self.label_01000.setText(_translate("MainWindow", "목걸이"))
+        self.label_01010.setText(_translate("MainWindow", "귀걸이1"))
+        self.label_01020.setText(_translate("MainWindow", "귀걸이2"))
+        self.label_01030.setText(_translate("MainWindow", "반지1"))
+        self.label_01040.setText(_translate("MainWindow", "반지2"))
         self.groupBox_011.setTitle(_translate("MainWindow", "보유한 악세서리"))
         self.checkBox_01100.setText(_translate("MainWindow", "checkBox_01100"))
         self.pushButton_01101.setText(_translate("MainWindow", "Del"))
@@ -594,6 +609,12 @@ class Ui_MainWindow(object):
         self.comboBox_00210.addItems(imprint_list)
 
 
+    def progress_set(self):
+        self.progressBar1.setMaximum()
+
+
+
+
     def imprintsetting(self):
         imprint0_name = self.comboBox_00000.currentText()
         imprint0_value = self.comboBox_00001.currentText()
@@ -633,52 +654,80 @@ class Ui_MainWindow(object):
 
         imprint_stone = [(imprint0_name, int(imprint0_value)), (imprint1_name, int(imprint1_value)), (debuff_name, int(debuff_value))]
 
+        ac1_nature1 = self.comboBox_01001.currentText()
+        ac1_nature2 = self.comboBox_01002.currentText()
+        ac2_nature = self.comboBox_01011.currentText()
+        ac3_nature = self.comboBox_01021.currentText()
+        ac4_nature = self.comboBox_01031.currentText()
+        ac5_nature = self.comboBox_01041.currentText()
+
+        nature_list = [('목걸이', (ac1_nature1, ac1_nature2)), ('귀걸이', (ac2_nature, '')), ('귀걸이', (ac3_nature, '')), ('반지', (ac4_nature, '')), ('반지', (ac5_nature, ''))]
+
         print(imprint_list)
         print(imprint_bonus)
         print(imprint_stone)
+        print(nature_list)
+
+        ac_com, ac_kind = calc.calc(imprint_list, imprint_bonus, imprint_stone)
+        for i in ac_com:
+            print(i)
+        for i in ac_kind:
+            print(i)
+
+        crawling.access()
+        session = crawling.make_session()
+        item_list = crawling.crawling(session, ac_kind, nature_list)
+
+        tm1 = time.time()
+        cd = calc.calc_ac(ac_com, item_list, nature_list, imprint_stone)
+        tm2 = time.time()
+        print(tm2 - tm1)
 
 
     def Calcbutton_click(self):
         self.imprintsetting()
 
 
-        
-
 
 def main1():
-    engraving_value = {'원한': 15, '저주받은 인형': 15, '버스트': 15, '기습의 대가': 15, '아드레날린': 15}
-    bonus = {'저주받은 인형': 12, '버스트': 12}
-    stone = ({'기습의 대가': 8, '원한': 7}, ('이동속도 감소', 3))
-    nature_list = [('목걸이', ('치명', '특화')), ('귀걸이', ('특화', '')), ('귀걸이', ('특화', '')), ('반지', ('특화', '')), ('반지', ('특화', ''))]
-    # quality = [50, 50, 50, 50, 50]
+    imprint_value = [('만개', 3), ('중갑 착용', 3), ('전문의', 3), ('각성', 3), ('구슬동자', 3)]
+    bonus = (('만개', 12), ('전문의', 12))
+    stone = (('각성', 5), ('중갑 착용', 8), ('방어력 감소', 2))
+    nature_list = (('목걸이', ('신속', '특화')), ('귀걸이', ('신속', '')), ('귀걸이', ('신속', '')), ('반지', ('신속', '')), ('반지', ('신속', '')))
+    quality = [90, 70, 70, 70, 70]
 
-    ac_com, ac_kind = calc.calc(engraving_value, bonus, stone)
+    ac_com, ac_pair, ac_kind = calc.calc(imprint_value, bonus, stone)
     for i in ac_com:
+        print(i)
+    for i in ac_pair:
         print(i)
     for i in ac_kind:
         print(i)
-    crawling.access()
+
+    #crawling.access()
     session = crawling.make_session()
-    item_list = crawling.crawling(session, ac_kind, nature_list)
+    crawling.crawling(session, ac_pair, nature_list, quality)
 
     tm1 = time.time()
-    cd = calc.calc_ac(ac_com, item_list, nature_list, stone)
+    calc.calc_ac1(ac_com, ac_kind, nature_list, stone)
     tm2 = time.time()
     print(tm2 - tm1)
 
+    calc.filtering()
+
 
 if __name__ == '__main__':
-    app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    ui.connect_event()
+    # app = QtWidgets.QApplication(sys.argv)
+    # MainWindow = QtWidgets.QMainWindow()
+    # ui = Ui_MainWindow()
+    # ui.setupUi(MainWindow)
+    # ui.connect_event()
+    #
+    # MainWindow.show()
+    # sys.exit(app.exec_())
 
-    MainWindow.show()
-    sys.exit(app.exec_())
-
-    #main1()
-    #calc.minn()
+    main1()
+    # calc.minn()
 
 
 

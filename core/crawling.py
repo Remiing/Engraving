@@ -9,6 +9,8 @@ from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.common.by import By
 from collections import defaultdict
 from webdriver_manager.chrome import ChromeDriverManager
+import pandas as pd
+import numpy as np
 
 
 def nested_dict(n, type):
@@ -35,7 +37,7 @@ def access():
         WebDriverWait(driver, 300).until(expected_conditions.element_to_be_clickable((By.ID, 'btnSearch')))
         html_source = driver.page_source
         #print(html_source)
-        with open("cookies.pkl", "wb") as fw:
+        with open("./data/cookies.pkl", "wb") as fw:
             pickle.dump(driver.get_cookies(), fw)
         #return driver
     except:
@@ -44,7 +46,7 @@ def access():
 
 def make_session():
     session = requests.Session()
-    with open("cookies.pkl", "rb") as fr:
+    with open("./data/cookies.pkl", "rb") as fr:
         cookies = pickle.load(fr)
     #print(cookies)
     for cookie in cookies:
@@ -53,7 +55,7 @@ def make_session():
     return session
 
 
-def crawling(session, ac, nature):
+def crawling(session, ac, nature, quality):
     url = 'https://lostark.game.onstove.com/Auction/GetAuctionListV2'
     category = {
         '목걸이': 200010,
@@ -62,7 +64,7 @@ def crawling(session, ac, nature):
     }
     grade_list = {
         '유물': 5,
-        '고대':6
+        '고대': 6
     }
     nature_list = {
         '치명': 15,
@@ -74,6 +76,7 @@ def crawling(session, ac, nature):
         '': ''
     }
     engraving_list = {
+        '임시': '',
         '각성': 255,
         '갈증': 286,
         '강령술': 243,
@@ -96,6 +99,7 @@ def crawling(session, ac, nature):
         '두 번째 동료': 258,
         '마나 효율 증가': 168,
         '마나의 흐름': 251,
+        '만개': 306,
         '멈출 수 없는 충동': 281,
         '바리케이드': 253,
         '버스트': 279,
@@ -158,94 +162,113 @@ def crawling(session, ac, nature):
         '화력 강화': 130,
         '환류': 294,
         '황제의 칙령': 201,
-        '황후의 은총': 200
+        '황후의 은총': 200,
+        '회귀': 306
     }
+    columns = ['name', 'effect1_name', 'effect1_value', 'effect2_name', 'effect2_value', 'effect3_name', 'effect3_value', 'nature1_name', 'nature1_value', 'nature2_name', 'nature2_value', 'quality', 'buy_price', 'start_price']
+    df_itemlist = pd.DataFrame(columns=columns)
+    search_list = []
+    for engraving_option1, engraving_option2 in ac:
+        for i, j in zip(nature, quality):
+            part = i[0]
+            nature_option = i[1]
+            qual = j
+            search_list.append((part, engraving_option1, engraving_option2, nature_option, qual))
+    search_list = list(set(search_list))  # 중복 제거
+    for i in search_list:
+        print(i)
+    print(len(search_list))
 
-    item_list = nested_dict(3, dict)
-    check = ''
-    for engraving_option1, engraving_option2 in tqdm.tqdm(ac, position=0, leave=False):
-        if engraving_option1[0] == '임시' or engraving_option2[0] == '임시':
-            continue
-        for part, nature_option in nature:
-            if part=='귀걸이' and engraving_option1[0] == '버스트' and engraving_option2[0] == '원한':
-                item_list[part]['특화']['버스트_3&원한_5'] = [{'name': '찬란한 파멸자의 귀걸이', 'effect': [('버스트', 3), ('원한', 5), ('공격력 감소', 2)], 'nature': [('특화', 278)], 'quality': 63, 'buy_price': 0}]
-                continue
-            if part+nature_option[0] == check:
-                continue
-            temp_list = []
-            page = 1
-            while True:
-                data = {
-                    'request[firstCategory]': 200000,
-                    'request[secondCategory]': category[part],
-                    'request[itemTier]': 3,
-                    'request[itemGrade]': 5,
-                    'request[itemLevelMin]': 0,
-                    'request[itemLevelMax]': 1700,
-                    'request[gradeQuality]': '',
-                    'request[etcOptionList][0][firstOption]': 3,
-                    'request[etcOptionList][0][secondOption]': engraving_list[engraving_option1[0]],
-                    'request[etcOptionList][0][minValue]': engraving_option1[1],
-                    'request[etcOptionList][0][maxValue]': engraving_option1[1],
-                    'request[etcOptionList][1][firstOption]': 3,
-                    'request[etcOptionList][1][secondOption]': engraving_list[engraving_option2[0]],
-                    'request[etcOptionList][1][minValue]': engraving_option2[1],
-                    'request[etcOptionList][1][maxValue]': engraving_option2[1],
-                    'request[etcOptionList][2][firstOption]': 2,
-                    'request[etcOptionList][2][secondOption]': nature_list[nature_option[0]],
-                    'request[etcOptionList][2][minValue]': '',
-                    'request[etcOptionList][2][maxValue]': '',
-                    'request[etcOptionList][3][firstOption]': 2,
-                    'request[etcOptionList][3][secondOption]': nature_list[nature_option[1]],
-                    'request[etcOptionList][3][minValue]': '',
-                    'request[etcOptionList][3][maxValue]': '',
-                    'request[pageNo]': page,
-                    'request[sortOption][Sort]': 'BIDSTART_PRICE',
-                    'request[sortOption][IsDesc]': 'false'
-                }
-                time.sleep(3)
-                response = session.post(url, data=data)
-                soup = BeautifulSoup(response.text, "html.parser")
-                if not soup.select('.empty'):
-                    #print(page, part, engraving_option1, engraving_option2, nature_option)
+    count = 1
+    total = len(search_list)
+    ac_total = 0
+    for option in search_list:
+        ac_list = []
+        page = 1
+        while True:
+            if page > 1:
+                break
+            data = {
+                'request[firstCategory]': 200000,
+                'request[secondCategory]': category[option[0]],
+                'request[itemTier]': 3,
+                'request[itemGrade]': 5,
+                'request[itemLevelMin]': 0,
+                'request[itemLevelMax]': 1700,
+                'request[gradeQuality]': option[4],
+                'request[etcOptionList][0][firstOption]': 3,
+                'request[etcOptionList][0][secondOption]': engraving_list[option[1][0]],
+                'request[etcOptionList][0][minValue]': option[1][1],
+                'request[etcOptionList][0][maxValue]': option[1][1],
+                'request[etcOptionList][1][firstOption]': 3,
+                'request[etcOptionList][1][secondOption]': engraving_list[option[2][0]],
+                'request[etcOptionList][1][minValue]': option[2][1],
+                'request[etcOptionList][1][maxValue]': option[2][1],
+                'request[etcOptionList][2][firstOption]': 2,
+                'request[etcOptionList][2][secondOption]': nature_list[option[3][0]],
+                'request[etcOptionList][2][minValue]': '',
+                'request[etcOptionList][2][maxValue]': '',
+                'request[etcOptionList][3][firstOption]': 2,
+                'request[etcOptionList][3][secondOption]': nature_list[option[3][1]],
+                'request[etcOptionList][3][minValue]': '',
+                'request[etcOptionList][3][maxValue]': '',
+                'request[pageNo]': page,
+                'request[sortOption][Sort]': 'BIDSTART_PRICE',
+                'request[sortOption][IsDesc]': 'false'
+            }
+            time.sleep(6)
+            response = session.post(url, data=data)
+            soup = BeautifulSoup(response.text, "html.parser")
+            if soup.select('.empty'):
+                break
+            ac_list.extend(parsing(soup))
+            page += 1
+        df_temp = pd.DataFrame(ac_list, columns=columns)
+        df_itemlist = pd.concat([df_itemlist, df_temp], ignore_index=True)
+        print('{0}/{1}\t{2}\t{3}{4}\t[{5} {6}][{7} {8}] {9}'.format(count, total, option[0], option[3][0], option[3][1], option[1][0], option[1][1], option[2][0], option[2][1], len(ac_list)))
+        print(ac_list)
+        count += 1
+        ac_total += len(ac_list)
 
-                    temp_list.extend(parsing(soup))
-                    page += 1
-                else:
-                    nature_name = nature_option[0] + nature_option[1]
-                    engraving_name = engraving_option1[0] + '_' + str(engraving_option1[1]) + '&' + engraving_option2[0] + '_' + str(engraving_option2[1])
-                    item_list[part][nature_name][engraving_name] = temp_list
-                    print(part, nature_name, engraving_name, len(temp_list))
-                    print(temp_list)
-                    check = part+nature_option[0]
-                    break
+    df_itemlist.to_csv('./data/item_list.csv', index=False)
+    print(ac_total)
 
-    return item_list
 
 
 def parsing(soup):
     item_list = []
     for item in soup.select('#auctionListTbody > tr'):
         if not item: break
-        name = item.select_one('#auctionListTbody > tr > td > div.grade > span.name').text
+        item_info = []
+        quality = int(item.select_one('#auctionListTbody > tr > td:nth-child(3) > div > span.txt').text)
+        name = item.select_one('#auctionListTbody > tr > td > div.grade > span.name').text # name
         effect = []
         for i in item.select('#auctionListTbody > tr > td > div.effect > ul:nth-child(1) > li'):
             option_text = i.text
-            effect.append((option_text[option_text.index('[') + 1:option_text.index(']')], int(option_text[option_text.index('+') + 1])))
+            effect.extend([option_text[option_text.index('[') + 1:option_text.index(']')], int(option_text[option_text.index('+') + 1])])
         nature = []
         nature_temp = item.select('#auctionListTbody > tr > td > div.effect > ul:nth-child(2) > li')
         for i in nature_temp:
             nature_text = i.text
-            nature.append((nature_text[nature_text.index('[') + 1:nature_text.index(']')], int(nature_text[nature_text.index('+') + 1:])))
-        quality = int(item.select_one('#auctionListTbody > tr > td:nth-child(3) > div > span.txt').text)
-        if quality < 50: continue
-        #start_price = item.select_one('#auctionListTbody > tr > td:nth-child(5) > div > em').text
-        buy_price = item.select_one('#auctionListTbody > tr > td:nth-child(6) > div > em').text.replace(' ', '').replace('\n', '').replace('\r', '').replace(',', '')
+            nature.extend([nature_text[nature_text.index('[') + 1:nature_text.index(']')], int(nature_text[nature_text.index('+') + 1:])])
+        if len(nature) < 4:
+            nature.extend(['', ''])
+        start_price = int(item.select_one('#auctionListTbody > tr > td:nth-child(5) > div > em').text.replace(',', '')) # start price
+        buy_price = item.select_one('#auctionListTbody > tr > td:nth-child(6) > div > em').text.replace(' ', '').replace('\n', '').replace('\r', '').replace(',', '') # buy_price
         if not buy_price.isdecimal():
-            continue
+            buy_price = 0
         else:
             buy_price = int(buy_price)
-        item_info = {'name': name, 'effect': effect, 'nature': nature, 'quality': quality, 'buy_price': buy_price}
+        # type = name.split(' ')[-1]
+
+        # item_info.append(type)
+        item_info.append(name)
+        item_info.extend(effect)
+        item_info.extend(nature)
+        item_info.append(quality)
+        item_info.append(start_price)
+        item_info.append(buy_price)
+
         item_list.append(item_info)
 
     return item_list
