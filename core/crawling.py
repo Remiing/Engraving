@@ -165,7 +165,7 @@ def crawling(session, ac, nature, quality):
         '황후의 은총': 200,
         '회귀': 306
     }
-    columns = ['name', 'effect1_name', 'effect1_value', 'effect2_name', 'effect2_value', 'effect3_name', 'effect3_value', 'nature1_name', 'nature1_value', 'nature2_name', 'nature2_value', 'quality', 'buy_price', 'start_price']
+    columns = ['name', 'effect1_name', 'effect1_value', 'effect2_name', 'effect2_value', 'effect3_name', 'effect3_value', 'nature1_name', 'nature1_value', 'nature2_name', 'nature2_value', 'quality', 'start_price', 'buy_price']
     df_itemlist = pd.DataFrame(columns=columns)
     search_list = []
     for engraving_option1, engraving_option2 in ac:

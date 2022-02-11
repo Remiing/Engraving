@@ -690,11 +690,11 @@ class Ui_MainWindow(object):
 
 
 def main1():
-    imprint_value = [('만개', 3), ('중갑 착용', 3), ('전문의', 3), ('각성', 3), ('구슬동자', 3)]
-    bonus = (('만개', 12), ('전문의', 12))
-    stone = (('각성', 5), ('중갑 착용', 8), ('방어력 감소', 2))
-    nature_list = (('목걸이', ('신속', '특화')), ('귀걸이', ('신속', '')), ('귀걸이', ('신속', '')), ('반지', ('신속', '')), ('반지', ('신속', '')))
-    quality = [90, 70, 70, 70, 70]
+    imprint_value = [('절실한 구원', 3), ('중갑 착용', 3), ('전문의', 3), ('각성', 3), ('급소 타격', 3)]
+    bonus = (('중갑 착용', 12), ('급소 타격', 12))
+    stone = (('각성', 5), ('전문의', 8), ('방어력 감소', 3))
+    nature_list = (('목걸이', ('신속', '특화')), ('귀걸이', ('신속', '')), ('귀걸이', ('신속', '')), ('반지', ('신속', '')), ('반지', ('특화', '')))
+    quality = [70, 70, 70, 70, 70]
 
     ac_com, ac_pair, ac_kind = calc.calc(imprint_value, bonus, stone)
     for i in ac_com:
@@ -704,12 +704,12 @@ def main1():
     for i in ac_kind:
         print(i)
 
-    #crawling.access()
+    crawling.access()
     session = crawling.make_session()
     crawling.crawling(session, ac_pair, nature_list, quality)
 
     tm1 = time.time()
-    calc.calc_ac1(ac_com, ac_kind, nature_list, stone)
+    calc.calc_ac(ac_com, ac_kind, nature_list, stone)
     tm2 = time.time()
     print(tm2 - tm1)
 

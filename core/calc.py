@@ -152,7 +152,7 @@ def combination(engraving_num):
     return combination_list
 
 
-def calc_ac1(ac_com, ac_kind, nature, stone):
+def calc_ac(ac_com, ac_kind, nature, stone):
     ac_pro_list = []
     permut_com = []
     for com in ac_com:
@@ -160,8 +160,6 @@ def calc_ac1(ac_com, ac_kind, nature, stone):
             permut_com.append(((nature[0], imp0), (nature[1], imp1), (nature[2], imp2), (nature[3], imp3), (nature[4], imp4)))
 
     permut_com = list(set(permut_com))
-    print(permut_com[0])
-    print(permut_com[1])
     print(len(permut_com))
     # ((('목걸이', ('신속', '특화')), (('전문의', 3), ('중갑 착용', 3))), (('귀걸이', ('신속', '')), (('임시', 0), ('중갑 착용', 4))), (('귀걸이', ('신속', '')), (('전문의', 3), ('중갑 착용', 5))), (('반지', ('신속', '')), (('각성', 3), ('전문의', 3))), (('반지', ('신속', '')), (('각성', 5), ('중갑 착용', 3))))
 
@@ -197,7 +195,7 @@ def calc_ac1(ac_com, ac_kind, nature, stone):
             pair_ac_list.append(ac_list)
             del ac_list
 
-        print('{0}/{1}\tstart\t{2}'.format(count, total, [y for x, y in parts]))
+        # print('{0}/{1}\tstart\t{2}'.format(count, total, [y for x, y in parts]))
         temp_product = list(product(*pair_ac_list))
         del pair_ac_list
         for acs in temp_product:
@@ -213,81 +211,35 @@ def calc_ac1(ac_com, ac_kind, nature, stone):
             acs_set = tuple(set(acs))
             ac_pro_list.append(acs_set)
 
-        print('finish {0}'.format(len(ac_pro_list)))
+        print('finish {0}'.format(count))
         count += 1
 
+    name, effect1_name, effect1_value, effect2_name, effect2_value, effect3_name, effect3_value, nature1_name, nature1_value, nature2_name, nature2_value, quality, start_price, buy_price = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13
     ac_pro_list = list(set(ac_pro_list))
     for i in range(len(ac_pro_list)):
-        sort_aclist = tuple(sorted(ac_pro_list[i], key=lambda x: (len(x[0].split()[-1]), x[0].split()[-1]), reverse=True))
-        price_total = (sum([x[13] for x in sort_aclist]))
-        nature_total = {sort_aclist[0][7]: 0, sort_aclist[0][9]: 0}
+        sort_aclist = tuple(sorted(ac_pro_list[i], key=lambda x: (len(x[name].split()[-1]), x[name].split()[-1]), reverse=True))
         ac1, ac2, ac3, ac4, ac5 = sort_aclist[0], sort_aclist[1], sort_aclist[2], sort_aclist[3], sort_aclist[4]
-        nature_total[ac1[7]] += ac1[8]
-        nature_total[ac1[9]] += ac1[10]
-        nature_total[ac2[7]] += ac2[8]
-        nature_total[ac3[7]] += ac3[8]
-        nature_total[ac4[7]] += ac4[8]
-        nature_total[ac5[7]] += ac5[8]
+        price_total = (sum([ac1[buy_price], ac2[buy_price], ac3[buy_price], ac4[buy_price], ac5[buy_price]]))
+        nature_total = {ac1[nature1_name]: ac1[nature1_value], ac1[nature2_name]: ac1[nature2_value]}
+        nature_total[ac2[nature1_name]] += ac2[nature1_value]
+        nature_total[ac3[nature1_name]] += ac3[nature1_value]
+        nature_total[ac4[nature1_name]] += ac4[nature1_value]
+        nature_total[ac5[nature1_name]] += ac5[nature1_value]
         nature_sum = sum(list(nature_total.values()))
         nature_total = list(nature_total.items())
-        # nature_total = '[{0} {1}][{2} {3}]'.format(nature_total[0][0], nature_total[0][1], nature_total[1][0], int(nature_total[1][1]))
 
         ac_pro_list[i] = (price_total, nature_sum, nature_total, ac1, ac2, ac3, ac4, ac5)
-
-
 
     columns = ['price_total', 'nature_sum', 'nature_total', 'ac1', 'ac2', 'ac3', 'ac4', 'ac5']
     df_result = pd.DataFrame(ac_pro_list, columns=columns)
     df_result.to_csv('./data/result.csv', index=False)
 
 
-def calc_ac(ac_com, item_list, nature_list, stone):
-    ac_list = []
-    for com in ac_com:
-        part_com = itertools.permutations(com)
-        for parts in part_com:
-            part_list = []
-            for engraving_option, nature in zip(parts, nature_list):
-                part = nature[0]
-                nature_option = nature[1]
-                engraving_option1 = engraving_option[0]
-                engraving_option2 = engraving_option[1]
-                nature_name = nature_option[0] + nature_option[1]
-                engraving_name = engraving_option1[0] + '_' + str(engraving_option1[1]) + '&' + engraving_option2[0] + '_' + str(engraving_option2[1])
-                part_list.append(item_list[part][nature_name][engraving_name])
-                # print(part, nature_name, engraving_name)
-                # print(item_list[part][nature_name][engraving_name])
-
-            temp_list = list(product(*part_list))
-            for ac in temp_list:
-                if ac[1]['name'] == ac[2]['name'] or ac[3]['name'] == ac[4]['name']:
-                    continue
-                effect = {'공격력 감소': 0, '공격속도 감소': 0, '방어력 감소': 0, '이동속도 감소': 0, stone[2][0]: stone[2][1]}
-                for i in ac:
-                    effect[i['effect'][2][0]] = effect[i['effect'][2][0]] + i['effect'][2][1]
-                for i in effect.values():
-                    if i >= 5:
-                        break
-                else:
-                    total = 0
-                    nature_total = {ac[0]['nature'][0][0]: 0, ac[0]['nature'][1][0]: 0}
-                    for i in ac:
-                        total += int(i['buy_price'])
-                        for j in i['nature']:
-                            nature_total[j[0]] += j[1]
-                    ac_list.append((total, nature_total, ac))
-                    #print(ac)
-
-    with open("./data/ac_list.pkl", "wb") as fw:
-        pickle.dump(ac_list, fw)
-
-
 def filtering():
     df_itemlist = csv.read_csv('./data/result.csv').to_pandas()
     print(type(df_itemlist))
     df_itemlist = df_itemlist.sort_values(by='price_total')
-    print(df_itemlist.head(5))
-    print(df_itemlist.tail(5))
+    print(df_itemlist.head(10))
 
     # nature_sum = 1950
     #
