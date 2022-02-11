@@ -28,11 +28,11 @@ def access():
     driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
 
     # access auction
-    driver.get(url)
-    driver.find_element_by_name('user_id').send_keys('killdog070@naver.com')
-    driver.find_element_by_name('user_pwd').send_keys('songjm8138')
-    login_x_path = '//*[@id="idLogin"]/div[4]/button/span'
-    driver.find_element_by_xpath(login_x_path).click()
+    # driver.get(url)
+    # driver.find_element_by_name('user_id').send_keys('')
+    # driver.find_element_by_name('user_pwd').send_keys('')
+    # login_x_path = '//*[@id="idLogin"]/div[4]/button/span'
+    # driver.find_element_by_xpath(login_x_path).click()
     try:
         WebDriverWait(driver, 300).until(expected_conditions.element_to_be_clickable((By.ID, 'btnSearch')))
         html_source = driver.page_source
